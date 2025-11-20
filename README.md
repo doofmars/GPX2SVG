@@ -59,7 +59,9 @@ If you did not record your own track using a gps logger, smartphone or smartwatc
 1. Go to [Google Maps](https://maps.google.com)
 2. Plan your desired route using the Directions function
 3. Copy the route link
-![maps1.png](images/maps1.png)
+
+![maps.png](images/maps.png)
+
 4. Use a GPX export tool like [mapstogpx.com](https://mapstogpx.com) or [gpx.studio](https://gpx.studio) to convert the Google Maps route to a GPX file.
 5. Download the GPX file
 6. Enhance the GPX file with elevation data using [gpsvisualizer.com](https://www.gpsvisualizer.com/elevation) to add elevation data to the GPX file.

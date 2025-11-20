@@ -1,6 +1,10 @@
 track_folder: 'tracks'
 elevation_data: 'out/design_elevation.csv'
 metadata_file: 'out/design_stops.csv'
+elevation_plot_file: 'out/design_elevation_profile.png'
+elevation_svg_file: 'out/design.svg'
+
+# Center image path (relative to the SVG file)
 center_image_path: '../images/centerimage.png'
 canvas_width: 1200
 canvas_height: 1200
@@ -8,14 +12,16 @@ line_size: 4
 line_color: 'white'
 circle_radius: 200
 start_angle: -90
-padding_outside: 250
-padding_inside: 50
+padding_outside: 250 # distance from the edge of the canvas to the start of the circle
+padding_inside: 50 # lowest distance from the center to the elevation line
 
 font_family: 'Arial'
 heading_text: 'Buen Camino'
 heading_color: 'white'
-heading_rotation: '60%'
+heading_font_size: 60
+heading_rotation: '69%'
 footer_text: 'Test text'
 footer_color: 'white'
+footer_font_size: 60
 footer_rotation: '25%'
 stop_text_color: 'white'

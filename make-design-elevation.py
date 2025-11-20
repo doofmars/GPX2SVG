@@ -48,7 +48,7 @@ def generate_elevation_profile():
     plt.xlabel('Distance (m)')
     plt.ylabel('Elevation (m)')
     plt.grid()
-    plt.savefig(f'out/design_elevation_profile.png')
+    plt.savefig(cfg['elevation_plot_file'])
     plt.close()
     return distances, elevations, stops
 
@@ -124,9 +124,6 @@ def generate_svg_elevation_profile(distances, elevations, stops_keys, stop_metad
         dwg.add(stop_circle)
         dwg.add(stop_text)
     
-    # Add bold heading font above the circle
-    heading_font_size = 60
-    padding_heading = 150
     # Bend the heading along a circular path around the inner circle
     cx = canvas_size[0] / 2
     cy = canvas_size[1] / 2
@@ -145,7 +142,7 @@ def generate_svg_elevation_profile(distances, elevations, stops_keys, stop_metad
     text_heading = dwg.text(
         '', 
         fill=cfg['heading_color'], 
-        font_size=heading_font_size, 
+        font_size=cfg['heading_font_size'], 
         font_weight='bold', 
         font_family=cfg['font_family']
     )
@@ -162,7 +159,7 @@ def generate_svg_elevation_profile(distances, elevations, stops_keys, stop_metad
     text_footer = dwg.text(
         '',
         fill=cfg['footer_color'],
-        font_size=heading_font_size,
+        font_size=cfg['footer_font_size'],
         font_weight='bold',
         style="text-anchor:middle",
         font_family=cfg['font_family']

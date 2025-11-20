@@ -4,19 +4,20 @@ import math
 import gpxpy
 import svgwrite
 import matplotlib.pyplot as plt
+import yaml
 
-track_folder = 'tracks'
-elevation_data = 'out/design_elevation.csv'
-metadata_file = 'out/design_stops.csv'
+# Load configuration
+with open('config.yaml', 'r', encoding='utf-8') as f:
+    cfg = yaml.safe_load(f)
 
 def generate_elevation_profile():
     elevations = []
     distances = []
     stops = []
     total_distance = 0
-    for filename in sorted(os.listdir(track_folder)):
+    for filename in sorted(os.listdir(cfg['track_folder'])):
         if filename.endswith('.gpx'):
-            file_path = os.path.join(track_folder, filename)
+            file_path = os.path.join(cfg['track_folder'], filename)
             with open(file_path, 'r', encoding='utf-8') as gpx_file:
                 gpx = gpxpy.parse(gpx_file) 
 
@@ -54,22 +55,16 @@ def generate_elevation_profile():
 def generate_svg_elevation_profile(distances, elevations, stops_keys, stop_metadata):
     # Generate svg file for the elevation profile
 
-    canvas_size = (1200, 1200)
-    line_size = 4
-    circle_radius = 200
-    center_image_path = '../images/centerimage3.png'
-    start_angle = -90
-    padding_outside = 250
-    padding_inside = 50
+    canvas_size = (cfg['canvas_width'], cfg['canvas_height'])
     print('Generating SVG for elevation profile...')
     dwg = svgwrite.Drawing('out/design.svg', profile='full', size=canvas_size)
     dwg['style'] = "background: none;"
 
     # Special drawing instructions:
     # In the center of the canvas draw a circle with a radius of `circle_radius` and fill it with a center image
-    dwg.add(dwg.circle(center=(canvas_size[0] / 2, canvas_size[1] / 2), r=circle_radius+line_size, stroke='black', stroke_width=line_size))
+    dwg.add(dwg.circle(center=(canvas_size[0] / 2, canvas_size[1] / 2), r=cfg['circle_radius']+cfg['line_size'], stroke='black', stroke_width=cfg['line_size']))
     # Add the image to the center and clip it to the circle
-    dwg.add(dwg.image(center_image_path, insert=(canvas_size[0] / 2 - circle_radius, canvas_size[1] / 2 - circle_radius), size=(circle_radius * 2, circle_radius * 2)))
+    dwg.add(dwg.image(cfg['center_image_path'], insert=(canvas_size[0] / 2 - cfg['circle_radius'], canvas_size[1] / 2 - cfg['circle_radius']), size=(cfg['circle_radius'] * 2, cfg['circle_radius'] * 2)))
     
     # Draw elevation profile as a circular line around the center circle
     max_distance = max(distances)
@@ -81,10 +76,10 @@ def generate_svg_elevation_profile(distances, elevations, stops_keys, stop_metad
     stops = []
     
     for i in range(num_points - 1):
-        angle1 = (distances[i] / max_distance) * 360 + start_angle
-        angle2 = (distances[i + 1] / max_distance) * 360 + start_angle
-        radius1 = circle_radius + ((elevations[i] - min_elevation) / (max_elevation - min_elevation)) * (canvas_size[0] / 2 - circle_radius - padding_outside) + padding_inside
-        radius2 = circle_radius + ((elevations[i + 1] - min_elevation) / (max_elevation - min_elevation)) * (canvas_size[0] / 2 - circle_radius - padding_outside) + padding_inside
+        angle1 = (distances[i] / max_distance) * 360 + cfg['start_angle']
+        angle2 = (distances[i + 1] / max_distance) * 360 + cfg['start_angle']
+        radius1 = cfg['circle_radius'] + ((elevations[i] - min_elevation) / (max_elevation - min_elevation)) * (canvas_size[0] / 2 - cfg['circle_radius'] - cfg['padding_outside']) + cfg['padding_inside']
+        radius2 = cfg['circle_radius'] + ((elevations[i + 1] - min_elevation) / (max_elevation - min_elevation)) * (canvas_size[0] / 2 - cfg['circle_radius'] - cfg['padding_outside']) + cfg['padding_inside']
         x1 = canvas_size[0] / 2 + radius1 * math.cos(math.radians(angle1))
         y1 = canvas_size[1] / 2 + radius1 * math.sin(math.radians(angle1))
         x2 = canvas_size[0] / 2 + radius2 * math.cos(math.radians(angle2))
@@ -96,9 +91,9 @@ def generate_svg_elevation_profile(distances, elevations, stops_keys, stop_metad
             text_angle = stop_metadata[stops_keys[i]]['angle']
             text_invert = stop_metadata[stops_keys[i]]['invert_text']
             text_anchor = 'start'
-            stop_circle = dwg.circle(center=(x1, y1), r=3*line_size, fill='white', stroke='black', stroke_width=line_size)
-            text_offset_x = 5 * line_size * math.cos(math.radians(text_angle))
-            text_offset_y = 5 * line_size * math.sin(math.radians(text_angle))
+            stop_circle = dwg.circle(center=(x1, y1), r=3*cfg['line_size'], fill='white', stroke='black', stroke_width=cfg['line_size'])
+            text_offset_x = 5 * cfg['line_size'] * math.cos(math.radians(text_angle))
+            text_offset_y = 5 * cfg['line_size'] * math.sin(math.radians(text_angle))
             # Calculate rotation angle so text faces away from the track line
             if text_invert:
                 text_angle += 180
@@ -106,8 +101,9 @@ def generate_svg_elevation_profile(distances, elevations, stops_keys, stop_metad
             stop_text = dwg.text(
                 stop_metadata[stops_keys[i]]['display_name'],
                 insert=(x1 + text_offset_x, y1 + text_offset_y),
-                font_size=6*line_size,
-                fill='black',
+                font_size=6*cfg['line_size'],
+                fill=cfg['stop_text_color'],
+                font_family=cfg['font_family'],
                 text_anchor=text_anchor,
                 transform=f"rotate({text_angle},{x1 + text_offset_x},{y1 + text_offset_y})"
             )
@@ -121,7 +117,7 @@ def generate_svg_elevation_profile(distances, elevations, stops_keys, stop_metad
             else:
                 path_d += f"L{x2},{y2} "
     # After the loop, add the path to the drawing
-    dwg.add(dwg.path(d=path_d, stroke='blue', stroke_width=line_size, fill='none'))
+    dwg.add(dwg.path(d=path_d, stroke=cfg['line_color'], stroke_width=cfg['line_size'], fill='none'))
     
     # Add stop markers to the drawing
     for stop_circle, stop_text in stops:
@@ -134,7 +130,7 @@ def generate_svg_elevation_profile(distances, elevations, stops_keys, stop_metad
     # Bend the heading along a circular path around the inner circle
     cx = canvas_size[0] / 2
     cy = canvas_size[1] / 2
-    text_radius = circle_radius + padding_inside + padding_outside  # radius for the text path
+    text_radius = cfg['circle_radius'] + cfg['padding_inside'] + cfg['padding_outside']  # radius for the text path
     # Embed custom font
     # dwg.embed_font(name="Aniron", filename="fonts/Aniron/Aniron-7BaP.ttf")
 
@@ -148,12 +144,12 @@ def generate_svg_elevation_profile(distances, elevations, stops_keys, stop_metad
     dwg.defs.add(dwg.path(d=path_heading, id=path_heading_id, fill='none'))
     text_heading = dwg.text(
         '', 
-        fill='black', 
+        fill=cfg['heading_color'], 
         font_size=heading_font_size, 
         font_weight='bold', 
-        # font_family="Aniron"
+        font_family=cfg['font_family']
     )
-    text_heading.add(dwg.textPath(f'#{path_heading_id}', 'Buen Camino', startOffset='66.6%'))
+    text_heading.add(dwg.textPath(f'#{path_heading_id}', cfg['heading_text'], startOffset=cfg['heading_rotation']))
     dwg.add(text_heading)
     # Add foot heading font below the circle
     path_footer_id = 'footerPath'
@@ -165,13 +161,13 @@ def generate_svg_elevation_profile(distances, elevations, stops_keys, stop_metad
     dwg.defs.add(dwg.path(d=path_footer, id=path_footer_id, fill='none'))
     text_footer = dwg.text(
         '',
-        fill='black',
+        fill=cfg['footer_color'],
         font_size=heading_font_size,
         font_weight='bold',
         style="text-anchor:middle",
-        # font_family="Aniron"
+        font_family=cfg['font_family']
     )
-    text_footer.add(dwg.textPath(f'#{path_footer_id}', 'Aragones', startOffset='25%'))
+    text_footer.add(dwg.textPath(f'#{path_footer_id}', cfg['footer_text'], startOffset=cfg['footer_rotation']))
     dwg.add(text_footer)
     # export the canvas to svg file
     dwg.save(pretty=True)
@@ -181,12 +177,12 @@ def get_elevation_data(debug=False):
         distances = [1]
         elevations = [2]
         stops = ['test']
-    elif os.path.exists(elevation_data):
+    elif os.path.exists(cfg['elevation_data']):
         print('Loading pre-calculated elevation profile from CSV...')
         distances = []
         elevations = []
         stops = []
-        with open(elevation_data, 'r', encoding='utf-8') as f:
+        with open(cfg['elevation_data'], 'r', encoding='utf-8') as f:
             next(f)  # skip header
             for line in f:
                 d, e, s = line.strip().split(',')
@@ -198,14 +194,14 @@ def get_elevation_data(debug=False):
         distances, elevations, stops = generate_elevation_profile()
         assert len(distances) == len(elevations) == len(stops)
         # store the calculated distances and elevations to a csv file
-        with open(elevation_data, 'w', encoding='utf-8') as f:
+        with open(cfg['elevation_data'], 'w', encoding='utf-8') as f:
             f.write('Distance(m),Elevation(m),Stops\n')
             for d, e, s in zip(distances, elevations, stops):
                 f.write(f'{d},{e},{s}\n')
         # write the stops to a metadata csv file if not already existing
-        if not os.path.exists(metadata_file):
+        if not os.path.exists(cfg['metadata_file']):
             print('Writing stops metadata to CSV...')
-            with open(metadata_file, 'w', encoding='utf-8') as f:
+            with open(cfg['metadata_file'], 'w', encoding='utf-8') as f:
                 f.write('show,stop_key,display_name,invert_text,angle\n')
                 for stop in sorted(set(stops)):
                     if stop:  # only write non-empty stops
@@ -214,9 +210,9 @@ def get_elevation_data(debug=False):
 
 def get_metadata():
     stop_metadata = {}
-    if os.path.exists(metadata_file):
+    if os.path.exists(cfg['metadata_file']):
         print('Loading stop metadata from CSV...')
-        with open(metadata_file, 'r', encoding='utf-8') as f:
+        with open(cfg['metadata_file'], 'r', encoding='utf-8') as f:
             next(f)  # skip header
             for line in f:
                 show, stop_key, display_name, invert_text, angle = line.strip().split(',')
@@ -228,7 +224,7 @@ def get_metadata():
                 }
         print(f'Loaded metadata for {len(stop_metadata)} stops.')
     else:
-        raise FileNotFoundError(f'Metadata file {metadata_file} not found, rebuild elevation data to create it.')
+        raise FileNotFoundError(f'Metadata file {cfg["metadata_file"]} not found, rebuild elevation data to create it.')
     return stop_metadata
 
 if __name__ == '__main__':

@@ -28,21 +28,22 @@ pip install -r requirements.txt
 ## Usage Design with Elevation
 
 1. Place your GPX files in the `tracks` directory. Note the GPX files must contain elevation data.
-2. Run the main script:
+2. Configure parameters in `config.yaml` as needed.
+3. Run the main script:
 
 ```bash
 python make-design-elevation.py
 ```
 This will calculate the elevation profile, store metadata and the design.
-3. Generated SVG files will be saved in the `out` directory.
+4. Generated SVG files will be saved in the `out` directory.
 
 The execution will generate the following files:
 - `out/design.svg`: SVG design for printing
 - `out/design_elevation_profile.png`: Elevation profile image for reference and error checking
 - `out/design_stops.csv`: List of stops based on track file: Config to show the label, name of the stop rotate and flip the text
 
-4. Edit the `out/design_stops.csv` script with proper stop names
-5. Re-run the script to update the `out/design.svg` with the new stop names. This can be repeated until all labels are proper
+5. Edit the `out/design_stops.csv` script with proper stop names
+6. Re-run the script to update the `out/design.svg` with the new stop names. This can be repeated until all labels are proper
 
 ```bash
 python make-design-elevation.py
